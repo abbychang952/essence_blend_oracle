@@ -1,0 +1,255 @@
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text-primary, #2c2c2a); }
+.container { max-width: 680px; margin: 0 auto; padding: 2rem 1rem; background: #faf8f3; min-height: 100vh; }
+.intro-screen, .drawing-screen, .results-screen { display: none; }
+.intro-screen.active, .drawing-screen.active, .results-screen.active { display: block; }
+
+.intro-screen { text-align: center; }
+.intro-title { font-size: 28px; font-weight: 500; margin-bottom: 1rem; color: #2c5f4f; }
+.intro-subtitle { font-size: 15px; color: var(--text-secondary, #5f5e5a); line-height: 1.6; margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+.input-group { background: white; border: 0.5px solid #d4c9b9; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; }
+.input-label { font-size: 14px; color: var(--text-secondary, #5f5e5a); margin-bottom: 1rem; display: block; }
+.input-control { display: flex; align-items: center; gap: 12px; }
+input[type="number"] { width: 80px; padding: 10px; border: 0.5px solid #d4c9b9; border-radius: 6px; font-size: 16px; text-align: center; font-weight: 500; color: #2c5f4f; }
+input[type="number"]:focus { outline: none; border-color: #4a8073; }
+
+.button { background: white; border: 0.5px solid #4a8073; color: #2c5f4f; padding: 12px 28px; border-radius: 6px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.button:hover { background: #f5f0e8; border-color: #2c5f4f; }
+.button:active { transform: scale(0.98); }
+.button.primary { background: #4a8073; color: white; border-color: #4a8073; }
+.button.primary:hover { background: #3d6759; }
+.button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.drawing-screen { text-align: center; }
+.drawing-title { font-size: 24px; font-weight: 500; color: #2c5f4f; margin-bottom: 3rem; }
+
+.scroll-container { background: white; border: 0.5px solid #d4c9b9; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+.scroll-item { font-size: 18px; font-weight: 500; color: #4a8073; padding: 1rem; transition: all 0.1s ease-out; }
+.scroll-item.blur { opacity: 0.3; }
+
+.results-screen { }
+.results-header { margin-bottom: 2rem; text-align: center; }
+.results-title { font-size: 24px; font-weight: 500; color: #2c5f4f; margin-bottom: 0.5rem; }
+.results-subtitle { font-size: 14px; color: var(--text-secondary, #5f5e5a); }
+
+.oils-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+.oil-card { background: white; border: 1px solid #d4c9b9; border-radius: 12px; padding: 1.25rem; animation: slideIn 0.3s ease-out; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.oil-name { font-size: 16px; font-weight: 500; color: #2c5f4f; margin-bottom: 0.75rem; }
+.oil-detail { font-size: 13px; margin-bottom: 0.5rem; color: var(--text-primary, #2c2c2a); line-height: 1.5; }
+.oil-label { font-size: 12px; font-weight: 500; color: #4a8073; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.75rem; }
+
+.action-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.action-buttons button { margin: 0; }
+
+.footer-note { font-size: 13px; color: var(--text-secondary, #5f5e5a); text-align: center; margin-top: 2rem; }
+
+.error-msg { color: #a32d2d; font-size: 13px; margin-top: 0.5rem; }
+</style>
+
+<div class="container">
+  <div class="intro-screen active">
+    <h1 class="intro-title">精油抓週</h1>
+    <p class="intro-subtitle">選擇想調配的瓶數，讓精油為你指引調配方向</p>
+    
+    <div class="input-group">
+      <label class="input-label">選擇瓶數（1-10）</label>
+      <div class="input-control">
+        <input type="number" id="bottleCount" min="1" max="10" value="3">
+      </div>
+      <div id="errorMsg" class="error-msg"></div>
+    </div>
+
+    <button class="button primary" onclick="validateAndDraw()">開始抓週</button>
+  </div>
+
+  <div class="drawing-screen">
+    <h2 class="drawing-title">抽籤中...</h2>
+    <div class="scroll-container" id="scrollContainer"></div>
+  </div>
+
+  <div class="results-screen">
+    <div class="results-header">
+      <h2 class="results-title">你的精油配方</h2>
+      <p class="results-subtitle" id="drawCount"></p>
+    </div>
+
+    <div class="oils-grid" id="oilsGrid"></div>
+
+    <div class="action-buttons">
+      <button class="button" onclick="goBack()">重新抓週</button>
+      <button class="button" onclick="exportBlend()">複製配方</button>
+    </div>
+
+    <p class="footer-note">💡 根據每瓶精油的療效與經絡應用，發揮你的調香創意</p>
+  </div>
+</div>
+
+<script>
+const essentialOils = [
+  { name: "完全依蘭", components: "倍半萜烯、酯類", physical: "催情放鬆、平衡油脂", emotional: "鼓舞情緒、解除焦慮", meridians: "心經、腎經、心包經" },
+  { name: "真正薰衣草", components: "酯類、單萜醇", physical: "抗菌、抗炎、改善睡眠", emotional: "放鬆心情、減輕焦慮", meridians: "心經、肝經、肺經、三焦經" },
+  { name: "茶樹", components: "單萜醇 (萜品烯-4-醇)", physical: "抗菌、抗病毒、治療痘痘", emotional: "幫助呼吸順暢、淨化思緒", meridians: "肺經、大腸經" },
+  { name: "澳洲尤加利", components: "氧化物 (1,8-桉油醇)", physical: "淨化呼吸道、舒緩感冒", emotional: "提振精神、澄清思緒", meridians: "肺經、大腸經" },
+  { name: "穗花薰衣草", components: "氧化物、單萜酮", physical: "舒緩肌肉痠痛、抗菌", emotional: "提振精神、減輕疲勞", meridians: "肺經、肝經" },
+  { name: "百里酚百里香", components: "單萜酚 (百里酚)", physical: "強效抗菌、抗感染", emotional: "提振精神、增強意志力", meridians: "肺經、腎經" },
+  { name: "野生百里香", components: "單萜酚 (香芹酚、百里酚)", physical: "抗菌、促進免疫", emotional: "激勵情緒、消除疲勞", meridians: "肺經、腎經" },
+  { name: "薑CO2", components: "倍半萜烯 (薑烯)", physical: "舒緩暈車噁心、溫暖四肢", emotional: "提振精神、消除疲憊", meridians: "脾經、胃經、腎經" },
+  { name: "岩蘭草", components: "倍半萜醇、倍半萜酮", physical: "深度放鬆、紮根大地", emotional: "得到安全感、安撫負面情緒", meridians: "脾經、胃經、腎經、三焦經" },
+  { name: "廣藿香", components: "倍半萜醇 (廣藿香醇)", physical: "抗菌消炎、促進皮膚再生", emotional: "穩定情緒、消除焦慮", meridians: "脾經、胃經、大腸經" },
+  { name: "檸檬香茅", components: "單萜醛 (檸檬醛)", physical: "強效驅蟲除臭、舒緩肌肉痠痛", emotional: "提振活力、消除疲勞", meridians: "脾經、胃經、肝經" },
+  { name: "月桂", components: "氧化物 (1,8-桉油醇)", physical: "抗菌、促進淋巴循環", emotional: "強化、活化、增強信心", meridians: "肺經、脾經" },
+  { name: "絲柏", components: "單萜烯 (α-蒎烯)", physical: "收斂止汗、舒緩浮腫", emotional: "平復情緒、收斂脾氣", meridians: "肝經、腎經、膀胱經" },
+  { name: "大西洋雪松", components: "倍半萜酮 (大西洋酮)", physical: "促進淋巴流動、強健髮根", emotional: "鎮靜冥想、降低焦慮", meridians: "腎經、脾經、肺經、三焦經" },
+  { name: "檀香", components: "倍半萜醇 (檀香醇)", physical: "護膚保濕、抗菌", emotional: "鎮靜效果、促進冥想和放鬆", meridians: "心經、脾經、腎經、心包經" },
+  { name: "日本檜木", components: "單萜烯、倍半萜醇", physical: "抗菌、促進呼吸道健康", emotional: "舒緩壓力、平靜心靈", meridians: "肺經、肝經" },
+  { name: "紅桔", components: "單萜烯 (檸檬烯)", physical: "促進消化、溫和抗菌", emotional: "安撫情緒、舒緩緊張", meridians: "肝經、脾經、胃經" },
+  { name: "柑橘", components: "單萜烯 (檸檬烯)", physical: "促進食慾、幫助消化", emotional: "提振情緒、帶來快樂", meridians: "肝經、脾經、胃經" },
+  { name: "黑胡椒", components: "倍半萜烯 (β-石竹烯)", physical: "溫暖身心、促進血液循環", emotional: "激勵心智、給予勇氣", meridians: "胃經、大腸經、腎經" },
+  { name: "甜馬鬱蘭", components: "單萜醇 (萜品烯-4-醇)", physical: "舒緩肌肉痠痛、幫助消化", emotional: "放鬆緊繃神經、舒緩焦慮", meridians: "心經、肝經、脾經" },
+  { name: "丁香", components: "酚類 (丁香酚)", physical: "強效抗菌、止痛", emotional: "提振精神、增強記憶", meridians: "腎經、脾經、胃經" },
+  { name: "乳香", components: "單萜烯 (α-蒎烯)", physical: "促進細胞再生、抗老化", emotional: "寧靜、沉穩、深沉放鬆", meridians: "肺經、心經、腎經" },
+  { name: "安息香", components: "酯類 (苯甲酸苄酯)", physical: "舒緩呼吸道、修復龜裂皮膚", emotional: "強效鎮靜、紓壓、抗沮喪", meridians: "脾經、肺經、心經" },
+  { name: "銀艾", components: "單萜酮、氧化物、倍半萜烯", physical: "舒緩經痛、抗菌", emotional: "放鬆情緒、舒緩焦慮", meridians: "肝經、脾經、腎經" },
+  { name: "檸檬", components: "單萜烯 (檸檬烯)", physical: "增強免疫力、淨化空氣", emotional: "澄清思緒、提升專注", meridians: "肝經、膽經、胃經" },
+  { name: "錫蘭肉桂", components: "芳香醛 (肉桂醛)", physical: "強效抗菌、促進循環", emotional: "溫暖心靈、消除疲勞", meridians: "腎經、心經、脾經" },
+  { name: "肉豆蔻", components: "單萜烯、醚類", physical: "促進消化、舒緩肌肉疼痛", emotional: "激勵情緒、恢復活力", meridians: "脾經、胃經、大腸經" },
+  { name: "玫瑰草", components: "單萜醇 (香葉醇)", physical: "保濕護膚、抗菌", emotional: "安撫情緒、舒緩壓力", meridians: "心經、脾經" },
+  { name: "古巴香脂", components: "倍半萜烯 (β-石竹烯)", physical: "強效抗發炎、舒緩疼痛", emotional: "穩定情緒、減輕焦慮", meridians: "肺經、腎經、大腸經" },
+  { name: "歐白脂根", components: "單萜烯 (α-蒎烯)", physical: "促進消化、排毒", emotional: "重建穩定、給予支持與力量", meridians: "肺經、脾經、胃經" },
+  { name: "佛手柑", components: "酯類、單萜烯", physical: "抗菌、促進消化", emotional: "抗憂鬱、放鬆焦慮、提振心情", meridians: "肝經、脾經、胃經、心包經、三焦經" },
+  { name: "花梨木", components: "單萜醇 (沉香醇)", physical: "護膚、舒緩疲勞", emotional: "放鬆與平衡、減緩壓力", meridians: "心經、脾經、腎經" },
+  { name: "綠花白千層", components: "氧化物 (1,8-桉油醇)", physical: "抗菌、淨化呼吸道", emotional: "提振精神、集中注意力", meridians: "肺經、膀胱經" },
+  { name: "海茴香", components: "單萜烯 (γ-萜品烯)", physical: "抗氧化、促進皮膚再生", emotional: "舒緩壓力、放鬆心情", meridians: "肝經、脾經" },
+  { name: "德國洋甘菊", components: "倍半萜烯、氧化物", physical: "強效抗發炎、舒緩過敏", emotional: "鎮靜情緒、減輕壓力", meridians: "肝經、脾經、胃經、三焦經" },
+  { name: "胡蘿蔔籽", components: "倍半萜醇 (胡蘿蔔醇)", physical: "清除肝臟毒素、促進細胞再生", emotional: "淨化心靈、消除疲勞", meridians: "肝經、膽經、脾經" },
+  { name: "岩玫瑰", components: "單萜烯 (α-蒎烯)", physical: "止血、抗痙攣", emotional: "平衡、鼓舞情緒、撫慰心靈", meridians: "心經、腎經" },
+  { name: "甜茴香", components: "醚類 (反式茴香腦)", physical: "促進消化、利尿排毒", emotional: "舒緩緊張、給予勇氣", meridians: "胃經、脾經、腎經" },
+  { name: "杜松漿果", components: "單萜烯 (α-蒎烯)", physical: "排除堆積水份、淨化", emotional: "激勵心靈、消除負面情緒", meridians: "腎經、膀胱經、肝經" },
+  { name: "波旁天竺葵", components: "單萜醇 (香茅醇、香葉醇)", physical: "平衡荷爾蒙、調理皮脂", emotional: "振奮情緒、鎮定與減輕壓力", meridians: "肝經、脾經、腎經" },
+  { name: "葡萄柚", components: "單萜烯 (檸檬烯)", physical: "促進淋巴循環、提振精神", emotional: "鼓舞情緒、使人走出不安感", meridians: "肝經、膽經、胃經" },
+  { name: "羅文莎葉", components: "氧化物 (1,8-桉油醇)", physical: "強效抗病毒、提升免疫", emotional: "舒緩焦慮、提振精神", meridians: "肺經、肝經" },
+  { name: "胡椒薄荷", components: "單萜醇、單萜酮", physical: "促進消化、緩解頭痛", emotional: "提神醒腦、澄清思緒", meridians: "肝經、膽經、胃經" },
+  { name: "綠薄荷", components: "單萜酮 (香芹酮)", physical: "舒緩消化不良、溫和抗菌", emotional: "提振精神、減輕疲勞", meridians: "肝經、胃經" },
+  { name: "苦橙葉", components: "酯類、單萜醇", physical: "放鬆肌肉、抗痙攣", emotional: "平衡提神、撫平易怒和緊張", meridians: "心經、肝經、心包經" },
+  { name: "歐洲赤松", components: "單萜烯 (α-蒎烯)", physical: "舒緩呼吸道、促進循環", emotional: "心靈平靜、清新提神", meridians: "肺經、腎經" },
+  { name: "綠香桃木", components: "氧化物、單萜烯", physical: "抗菌、抗痙攣", emotional: "放鬆情緒、平衡身心", meridians: "肺經、肝經" },
+  { name: "桉油醇迷迭香", components: "氧化物 (1,8-桉油醇)", physical: "舒緩肌肉痠痛、促進循環", emotional: "提升精神與專注力", meridians: "肺經、肝經" },
+  { name: "馬鞭草酮迷迭香", components: "單萜酮 (馬鞭草酮)", physical: "促進肝臟排毒、護膚", emotional: "澄清思緒、增強記憶", meridians: "肝經、膽經" },
+  { name: "鼠尾草", components: "單萜酮 (側柏酮)", physical: "抗菌、舒緩喉嚨痛", emotional: "舒緩壓力、放鬆心情", meridians: "肺經、肝經、腎經" },
+  { name: "快樂鼠尾草", components: "酯類 (乙酸沉香酯)", physical: "舒緩經期不適、放鬆肌肉", emotional: "放鬆緊繃神經、引發幸福感", meridians: "肝經、腎經、心經、三焦經" },
+  { name: "檸檬馬鞭草", components: "單萜醛 (檸檬醛)", physical: "促進消化、抗發炎", emotional: "舒緩焦慮、鎮靜情緒", meridians: "肝經、脾經、胃經" },
+  { name: "黑雲杉", components: "單萜烯、酯類", physical: "提高環境適應力與耐受度", emotional: "讓人有勇氣面對生命的挑戰", meridians: "腎經、肺經" },
+  { name: "沒藥", components: "倍半萜烯", physical: "抗菌、修復傷口、平衡荷爾蒙", emotional: "安神、重新振作起來", meridians: "脾經、胃經、腎經" },
+  { name: "芳枸葉", components: "單萜烯、氧化物、單萜醇", physical: "抗菌、舒緩呼吸道", emotional: "釋放深層情緒、平衡身心", meridians: "肺經、心經" },
+  { name: "芳樟", components: "單萜醇 (沉香醇)", physical: "抗菌、舒緩肌肉疼痛", emotional: "安撫情緒、減輕壓力", meridians: "心經、脾經" },
+  { name: "白玉蘭葉", components: "單萜醇 (沉香醇)", physical: "補氣、抗菌、排除廢水", emotional: "幫助安定與堅強、鎮定情緒", meridians: "心經、肺經、脾經" },
+  { name: "阿米香樹", components: "倍半萜醇 (纈草醇、欖香醇)", physical: "靜脈循環、抗痙攣、皮膚保濕", emotional: "鎮靜安神、助眠、舒緩壓力", meridians: "肝經、心經" },
+  { name: "小茴香", components: "醛類、單萜烯 (小茴香醛、檸檬烯)", physical: "幫助消化、緩解胃腸脹氣", emotional: "清掃不愉快記憶、處理沮喪", meridians: "脾經、胃經" },
+  { name: "穗甘松", components: "倍半萜酮 (纈草酮)", physical: "抗菌、抗炎、舒緩心血管", emotional: "鎮靜、緩解焦慮、促進睡眠", meridians: "心經、脾經" },
+  { name: "桔葉", components: "酯類 (鄰氨基苯甲酸二甲酯)", physical: "抗痙攣、消炎、助消化", emotional: "神經鎮靜、舒緩焦慮、助眠", meridians: "肝經、脾經" },
+  { name: "樺木", components: "酯類 (水楊酸甲酯)", physical: "止痛、消除尿酸、利尿消水腫", emotional: "賦予活力、振奮、醒神通竅", meridians: "腎經、膀胱經" },
+  { name: "犬香薷", components: "單萜醇 (沉香醇)", physical: "收斂舒敏、鎮定肌膚、抗菌", emotional: "撫平情緒、鎮靜、給予安撫", meridians: "心經、肺經" },
+  { name: "東印度檸檬香茅", components: "單萜醛 (檸檬醛)", physical: "消除乳酸、促進循環、殺菌", emotional: "激勵、復甦、提振、消除疲勞", meridians: "脾經、胃經" }
+];
+
+const bottleCountInput = document.getElementById('bottleCount');
+
+bottleCountInput.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') validateAndDraw();
+});
+
+function validateAndDraw() {
+  const input = document.getElementById('bottleCount');
+  const count = parseInt(input.value);
+  const errorMsg = document.getElementById('errorMsg');
+  
+  if (isNaN(count) || count < 1 || count > 10) {
+    errorMsg.textContent = '請輸入 1 至 10 之間的數字';
+    return;
+  }
+  errorMsg.textContent = '';
+  startDraw(count);
+}
+
+function getRandomOils(count) {
+  const shuffled = [...essentialOils].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+function startDraw(count) {
+  document.querySelector('.intro-screen').classList.remove('active');
+  document.querySelector('.drawing-screen').classList.add('active');
+  
+  const scrollContainer = document.getElementById('scrollContainer');
+  scrollContainer.innerHTML = '';
+  
+  const allOils = [...essentialOils];
+  let currentIndex = 0;
+  const selected = getRandomOils(count);
+  
+  const scrollDuration = 2000;
+  const frameInterval = 30;
+  const totalFrames = Math.ceil(scrollDuration / frameInterval);
+  let frame = 0;
+  
+  const scrollInterval = setInterval(() => {
+    scrollContainer.innerHTML = '';
+    
+    for (let i = -2; i <= 2; i++) {
+      const index = (currentIndex + i + allOils.length) % allOils.length;
+      const div = document.createElement('div');
+      div.className = 'scroll-item' + (i !== 0 ? ' blur' : '');
+      div.textContent = allOils[index].name;
+      div.style.transform = `scale(${i === 0 ? 1 : 0.8})`;
+      scrollContainer.appendChild(div);
+    }
+    
+    currentIndex = (currentIndex + 1) % allOils.length;
+    frame++;
+    
+    if (frame >= totalFrames) {
+      clearInterval(scrollInterval);
+      showResults(selected, count);
+    }
+  }, frameInterval);
+}
+
+function showResults(selected, count) {
+  document.querySelector('.drawing-screen').classList.remove('active');
+  document.querySelector('.results-screen').classList.add('active');
+  
+  document.getElementById('drawCount').textContent = `已隨機選擇 ${count} 瓶精油`;
+  
+  const grid = document.getElementById('oilsGrid');
+  grid.innerHTML = selected.map((oil, idx) => `
+    <div class="oil-card" style="animation-delay: ${idx * 0.05}s;">
+      <div class="oil-name">${oil.name}</div>
+      <div class="oil-detail"><span class="oil-label">主要成分</span><br>${oil.components}</div>
+      <div class="oil-detail"><span class="oil-label">生理療效</span><br>${oil.physical}</div>
+      <div class="oil-detail"><span class="oil-label">心理療效</span><br>${oil.emotional}</div>
+      <div class="oil-detail"><span class="oil-label">經絡應用</span><br>${oil.meridians}</div>
+    </div>
+  `).join('');
+  
+  window.selectedOils = selected;
+}
+
+function goBack() {
+  document.querySelector('.results-screen').classList.remove('active');
+  document.querySelector('.intro-screen').classList.add('active');
+  document.getElementById('bottleCount').value = 3;
+  document.getElementById('errorMsg').textContent = '';
+}
+
+function exportBlend() {
+  if (!window.selectedOils) return;
+  const text = window.selectedOils.map(oil => `${oil.name}\n成分: ${oil.components}\n生理: ${oil.physical}\n心理: ${oil.emotional}\n經絡: ${oil.meridians}`).join('\n\n---\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    alert('配方已複製到剪貼板');
+  });
+}
+</script>
