@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>精油抓週｜Essence Blend Oracle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;min-height:100%;background:#f4f0e7;color:#2f332f;font-family:"Noto Serif TC","Songti TC","PMingLiU",Georgia,serif;-webkit-font-smoothing:antialiased}
+a{color:#3f5346}a:hover{color:#2b3a30}
+button,input{font:inherit}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-inner-spin-button,input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes drift{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(1deg)}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#f4f0e7">
+ <header style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:22px clamp(20px,5vw,64px);border-bottom:1px solid rgba(63,83,70,.18);font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#3f5346">
+  <span>Essence Blend Oracle</span>
+  <span style="color:#7a7c72">Botanical Edition</span>
+ </header>
+
+ <sc-if value="{{ isIntro }}" hint-placeholder-val="{{ true }}">
+ <main data-screen-label="Intro" style="flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:center;gap:clamp(28px,6vw,96px);padding:clamp(32px,6vw,80px) clamp(20px,5vw,64px);animation:fadeUp .6s ease both">
+  <div style="display:flex;justify-content:center;order:2">
+   <div aria-hidden="true" style="width:min(100%,460px);aspect-ratio:1;background-image:url({{ heroAtlas }});background-size:400% 200%;background-position:{{ heroPos }};background-repeat:no-repeat;animation:drift 9s ease-in-out infinite"></div>
+  </div>
+  <div style="order:1;max-width:520px">
+   <p style="margin:0 0 22px;font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:#7a7c72">No. 65 · 植物版</p>
+   <h1 style="margin:0;font-size:clamp(52px,7.5vw,96px);font-weight:500;line-height:1.1;letter-spacing:.08em;color:#3f5346">精油抓週</h1>
+   <p style="margin:26px 0 0;font-size:clamp(15px,1.4vw,17px);line-height:2.05;letter-spacing:.06em;color:#5d615a;text-wrap:pretty">在一冊植物氣息之間，讓直覺替你翻開今日的藥草書頁，尋得一組專屬的調香線索。</p>
+   <div style="margin-top:44px;padding-top:28px;border-top:1px solid rgba(63,83,70,.22);display:flex;flex-wrap:wrap;align-items:center;gap:20px 28px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+     <label for="bottleCount" style="font-size:12px;letter-spacing:.18em;color:#7a7c72">抽取瓶數 · 1–10</label>
+     <div style="display:grid;grid-template-columns:44px 64px 44px;border:1px solid rgba(63,83,70,.35);background:rgba(255,255,255,.35)">
+      <button type="button" aria-label="減少一瓶" onClick="{{ dec }}" style="border:0;background:transparent;color:#3f5346;cursor:pointer;font-size:22px;min-height:48px;line-height:1" style-hover="background:rgba(63,83,70,.08)">−</button>
+      <input type="number" id="bottleCount" min="1" max="10" inputMode="numeric" value="{{ count }}" onChange="{{ onInput }}" onKeyDown="{{ onKey }}" style="width:100%;min-width:0;border:0;border-inline:1px solid rgba(63,83,70,.25);background:transparent;color:#3f5346;font-size:22px;text-align:center;outline:none;font-family:'Cormorant Garamond',Georgia,serif;font-weight:500">
+      <button type="button" aria-label="增加一瓶" onClick="{{ inc }}" style="border:0;background:transparent;color:#3f5346;cursor:pointer;font-size:22px;min-height:48px;line-height:1" style-hover="background:rgba(63,83,70,.08)">+</button>
+     </div>
+    </div>
+    <button type="button" onClick="{{ start }}" style="align-self:end;min-height:50px;padding:0 34px;border:1px solid #3f5346;background:#3f5346;color:#f4f0e7;letter-spacing:.2em;font-size:14px;cursor:pointer;transition:background .2s" style-hover="background:#2e3d33">開始抓週</button>
+   </div>
+   <p role="alert" style="min-height:22px;margin:12px 0 0;font-size:13px;color:#8a4f49;letter-spacing:.05em">{{ error }}</p>
+  </div>
+ </main>
+ </sc-if>
+
+ <sc-if value="{{ isDrawing }}" hint-placeholder-val="{{ false }}">
+ <main data-screen-label="Drawing" style="flex:1;display:grid;place-items:center;align-content:center;gap:44px;padding:clamp(32px,6vw,80px) clamp(20px,5vw,64px);text-align:center;animation:fadeUp .6s ease both">
+  <div>
+   <p style="margin:0 0 18px;font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:#7a7c72">Consulting the herbarium</p>
+   <h2 style="margin:0;font-size:clamp(30px,4vw,44px);font-weight:500;letter-spacing:.1em;color:#3f5346">植物正在回應</h2>
+   <p style="margin:14px 0 0;font-size:14px;letter-spacing:.12em;color:#7a7c72">請稍候，讓氣息停在適合你的篇章</p>
+  </div>
+  <div style="width:min(520px,100%);height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative;border-top:1px solid rgba(63,83,70,.22);border-bottom:1px solid rgba(63,83,70,.22)">
+   <sc-for list="{{ rolling }}" as="r" hint-placeholder-count="5">
+    <div style="padding:12px;font-size:{{ r.size }};letter-spacing:.14em;color:#3f5346;opacity:{{ r.opacity }};font-weight:{{ r.weight }}">{{ r.name }}</div>
+   </sc-for>
+  </div>
+ </main>
+ </sc-if>
+
+ <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+ <main data-screen-label="Results" style="flex:1;padding:clamp(32px,6vw,72px) clamp(20px,5vw,64px) 48px;animation:fadeUp .6s ease both">
+  <div style="text-align:center;margin-bottom:clamp(36px,5vw,64px)">
+   <p style="margin:0 0 18px;font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:#7a7c72">Your botanical selection</p>
+   <h2 style="margin:0;font-size:clamp(32px,4.5vw,52px);font-weight:500;letter-spacing:.1em;color:#3f5346">你的精油配方</h2>
+   <p style="margin:14px 0 0;font-size:14px;letter-spacing:.12em;color:#7a7c72">{{ drawCountText }}</p>
+  </div>
+  <div style="max-width:1040px;margin:0 auto;border-top:1px solid rgba(63,83,70,.25)">
+   <sc-for list="{{ selected }}" as="oil" hint-placeholder-count="3">
+    <article style="display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:start;padding:clamp(28px,4vw,44px) 0;border-bottom:1px solid rgba(63,83,70,.25);animation:fadeUp .5s ease both;animation-delay:{{ oil.delay }}">
+     <div aria-label="{{ oil.name }} 植物素描" style="aspect-ratio:1;background-image:url({{ oil.atlas }});background-size:400% 200%;background-position:{{ oil.pos }};background-repeat:no-repeat"></div>
+     <div style="min-width:0">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+       <h3 style="margin:0;font-size:clamp(22px,2.4vw,30px);font-weight:500;letter-spacing:.12em;color:#3f5346">{{ oil.name }}</h3>
+       <span style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:26px;color:rgba(63,83,70,.45)">{{ oil.index }}</span>
+      </div>
+      <sc-if value="{{ showLatin }}" hint-placeholder-val="{{ true }}">
+      <p style="margin:6px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:17px;color:#7a7c72">{{ oil.latin }}</p>
+      </sc-if>
+      <dl style="margin:24px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px 32px">
+       <div><dt style="font-size:11px;letter-spacing:.2em;color:#a08a83;margin-bottom:6px">主要成分</dt><dd style="margin:0;font-size:15px;line-height:1.8;color:#2f332f">{{ oil.components }}</dd></div>
+       <div><dt style="font-size:11px;letter-spacing:.2em;color:#a08a83;margin-bottom:6px">生理療效</dt><dd style="margin:0;font-size:15px;line-height:1.8;color:#2f332f">{{ oil.physical }}</dd></div>
+       <div><dt style="font-size:11px;letter-spacing:.2em;color:#a08a83;margin-bottom:6px">心理療效</dt><dd style="margin:0;font-size:15px;line-height:1.8;color:#2f332f">{{ oil.emotional }}</dd></div>
+       <div><dt style="font-size:11px;letter-spacing:.2em;color:#a08a83;margin-bottom:6px">經絡應用</dt><dd style="margin:0;font-size:15px;line-height:1.8;color:#2f332f">{{ oil.meridians }}</dd></div>
+      </dl>
+     </div>
+    </article>
+   </sc-for>
+  </div>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:44px">
+   <button type="button" onClick="{{ goBack }}" style="min-height:50px;padding:0 30px;border:1px solid #3f5346;background:transparent;color:#3f5346;letter-spacing:.2em;font-size:14px;cursor:pointer;transition:background .2s" style-hover="background:rgba(63,83,70,.08)">重新抓週</button>
+   <button type="button" onClick="{{ exportBlend }}" style="min-height:50px;padding:0 30px;border:1px solid #3f5346;background:#3f5346;color:#f4f0e7;letter-spacing:.2em;font-size:14px;cursor:pointer;transition:background .2s" style-hover="background:#2e3d33">複製配方</button>
+  </div>
+  <p style="max-width:560px;margin:32px auto 0;text-align:center;font-size:13px;line-height:1.9;letter-spacing:.04em;color:#7a7c72">依循每瓶精油的療效與經絡應用，保留直覺，也留意安全濃度與個人狀況。</p>
+ </main>
+ </sc-if>
+
+ <footer style="padding:18px clamp(20px,5vw,64px);border-top:1px solid rgba(63,83,70,.18);text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:#9a9b90">Botanical · Apothecary · Oracle</footer>
+ <div role="status" style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#3f5346;color:#f4f0e7;padding:12px 22px;font-size:14px;letter-spacing:.08em;box-shadow:0 10px 30px rgba(47,51,47,.15);pointer-events:none;transition:opacity .25s;opacity:{{ toastOpacity }}">{{ toast }}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showLatin&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;結果卡片&quot;},&quot;heroPlant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;random&quot;,&quot;options&quot;:[&quot;random&quot;,&quot;0&quot;,&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;7&quot;,&quot;14&quot;,&quot;21&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;首頁插圖&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'intro', count: 3, error: '', selected: [], roll: 0, toast: '', oils: [], latin: [], hero: 1 };
+  async componentDidMount() {
+    const m = await import('./oils.js');
+    this.setState({ oils: m.essentialOils, latin: m.botanicalIdentities, hero: Math.floor(Math.random() * m.essentialOils.length) });
+  }
+  componentWillUnmount() { clearInterval(this.timer); clearTimeout(this.toastTimer); }
+  art(i) { const g = Math.floor(i / 8), l = i % 8; return { atlas: `assets/atlas${g}.png`, pos: `${(l % 4) * 33.3333}% ${Math.floor(l / 4) * 100}%` }; }
+  setCount(v) { this.setState({ count: v, error: '' }); }
+  start() {
+    const n = parseInt(this.state.count);
+    if (isNaN(n) || n < 1 || n > 10) return this.setState({ error: '請輸入 1 至 10 之間的數字' });
+    const pool = [...this.state.oils];
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const selected = pool.slice(0, n);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const frames = Math.ceil((reduced ? 350 : 2000) / 30); let f = 0;
+    this.setState({ screen: 'drawing', error: '', roll: Math.floor(Math.random() * pool.length) });
+    this.timer = setInterval(() => {
+      f++; this.setState(s => ({ roll: (s.roll + 1) % s.oils.length }));
+      if (f >= frames) { clearInterval(this.timer); this.setState({ screen: 'results', selected }); }
+    }, 30);
+  }
+  showToast(t) { this.setState({ toast: t }); clearTimeout(this.toastTimer); this.toastTimer = setTimeout(() => this.setState({ toast: '' }), 2200); }
+  async exportBlend() {
+    const text = this.state.selected.map(o => `${o.name}\n成分: ${o.components}\n生理: ${o.physical}\n心理: ${o.emotional}\n經絡: ${o.meridians}`).join('\n\n---\n\n');
+    try { await navigator.clipboard.writeText(text); this.showToast('配方已複製到剪貼簿'); }
+    catch (e) { this.showToast('無法自動複製，請改用瀏覽器的複製功能'); }
+  }
+  renderVals() {
+    const { screen, count, error, selected, roll, toast, oils, latin, hero } = this.state;
+    const showLatin = this.props.showLatin ?? true;
+    const heroIdx = this.props.heroPlant === 'random' || this.props.heroPlant == null ? hero : Number(this.props.heroPlant);
+    const heroArt = this.art(heroIdx);
+    const rolling = oils.length ? [-2, -1, 0, 1, 2].map(i => {
+      const o = oils[(roll + i + oils.length) % oils.length];
+      return { name: o.name, size: i === 0 ? '22px' : '16px', opacity: i === 0 ? 1 : 0.28, weight: i === 0 ? 500 : 400 };
+    }) : [];
+    return {
+      isIntro: screen === 'intro', isDrawing: screen === 'drawing', isResults: screen === 'results',
+      count, error, toast, toastOpacity: toast ? 1 : 0, showLatin,
+      heroAtlas: heroArt.atlas, heroPos: heroArt.pos, rolling,
+      drawCountText: `已隨機選擇 ${selected.length} 瓶精油`,
+      selected: selected.map((o, i) => { const gi = oils.indexOf(o); return { ...o, ...this.art(gi), latin: latin[gi], index: String(i + 1).padStart(2, '0'), delay: `${i * 0.08}s` }; }),
+      dec: () => this.setCount(Math.max(1, (parseInt(count) || 1) - 1)),
+      inc: () => this.setCount(Math.min(10, (parseInt(count) || 1) + 1)),
+      onInput: e => this.setCount(e.target.value),
+      onKey: e => { if (e.key === 'Enter') this.start(); },
+      start: () => this.start(),
+      goBack: () => this.setState({ screen: 'intro', count: 3, error: '', hero: Math.floor(Math.random() * oils.length) }),
+      exportBlend: () => this.exportBlend()
+    };
+  }
+}
+</script>
+</body>
+</html>
